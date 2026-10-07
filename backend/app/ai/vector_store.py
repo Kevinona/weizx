@@ -169,14 +169,19 @@ class VectorStoreManager:
         )
 
         docs: list[dict] = []
-        if results["ids"] and results["ids"][0]:
-            for i, doc_id in enumerate(results["ids"][0]):
-                distance = results["distances"][0][i]
+        ids = results.get("ids") or []
+        documents = results.get("documents") or []
+        metadatas = results.get("metadatas") or []
+        distances = results.get("distances") or []
+
+        if ids and ids[0]:
+            for i, doc_id in enumerate(ids[0]):
+                distance = distances[0][i] if (distances and distances[0] and i < len(distances[0])) else None
                 if isinstance(distance, (int, float)) and distance < (1.0 - threshold):
                     docs.append({
                         "id": doc_id,
-                        "text": results["documents"][0][i] or "",
-                        "metadata": results["metadatas"][0][i] or {},
+                        "text": (documents[0][i] if documents and documents[0] and i < len(documents[0]) else "") or "",
+                        "metadata": (metadatas[0][i] if metadatas and metadatas[0] and i < len(metadatas[0]) else {}) or {},
                         "distance": distance,
                     })
 
@@ -272,16 +277,22 @@ class VectorStoreManager:
         results = self.conversation_memory.query(**query_kwargs)
 
         docs: list[str] = []
-        if results["ids"] and results["ids"][0]:
-            for i, doc_id in enumerate(results["ids"][0]):
-                meta = results["metadatas"][0][i] or {}
+        ids = results.get("ids") or []
+        documents = results.get("documents") or []
+        metadatas = results.get("metadatas") or []
+        distances = results.get("distances") or []
+
+        if ids and ids[0]:
+            for i, doc_id in enumerate(ids[0]):
+                meta = (metadatas[0][i] if metadatas and metadatas[0] and i < len(metadatas[0]) else {}) or {}
                 if session_id and meta.get("session_id") != session_id:
                     continue
                 if exclude_session and meta.get("session_id") == exclude_session:
                     continue
-                distance = results["distances"][0][i] or 0
+                distance = (distances[0][i] if distances and distances[0] and i < len(distances[0]) else 0) or 0
                 if distance < 0.6:  # cosine distance: 0=identical, 2=opposite
-                    docs.append(results["documents"][0][i] or "")
+                    text = (documents[0][i] if documents and documents[0] and i < len(documents[0]) else "") or ""
+                    docs.append(text)
 
         logger.debug(f"Similar conversations: {len(docs)} results")
         return docs
@@ -310,11 +321,15 @@ class VectorStoreManager:
             include=["documents", "distances"],
         )
 
-        if results["ids"] and results["ids"][0]:
-            distance = results["distances"][0][0] or 0
+        ids = results.get("ids") or []
+        documents = results.get("documents") or []
+        distances = results.get("distances") or []
+
+        if ids and ids[0]:
+            distance = (distances[0][0] if distances and distances[0] else 0) or 0
             similarity = 1.0 - distance / 2.0  # cosine distance -> similarity
             if similarity >= threshold:
-                similar_text = results["documents"][0][0] or ""
+                similar_text = (documents[0][0] if documents and documents[0] else "") or ""
                 logger.debug(f"Duplicate detected: similarity={similarity:.3f}")
                 return True, similar_text
         return False, ""
@@ -390,12 +405,16 @@ class VectorStoreManager:
             )
 
             entries: list[tuple[float, str]] = []
-            if results["ids"]:
-                for i, doc_id in enumerate(results["ids"]):
-                    meta = results["metadatas"][i] or {}
+            ids = results.get("ids") or []
+            metadatas = results.get("metadatas") or []
+            documents = results.get("documents") or []
+
+            if ids:
+                for i, doc_id in enumerate(ids):
+                    meta = (metadatas[i] if i < len(metadatas) else {}) or {}
                     if meta.get("session_id") == session_id:
                         ts = meta.get("timestamp", 0)
-                        text = results["documents"][i] or ""
+                        text = (documents[i] if i < len(documents) else "") or ""
                         entries.append((ts, text))
 
             entries.sort(key=lambda x: x[0], reverse=True)

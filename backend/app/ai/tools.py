@@ -191,7 +191,7 @@ def get_current_time() -> str:
     result = now.strftime("%Y年%m月%d日 %H:%M:%S 星期%w")
     # 将数字星期转换为中文
     weekday_map = {"0": "日", "1": "一", "2": "二", "3": "三", "4": "四", "5": "五", "6": "六"}
-    weekday_cn = weekday_map.get(str(now.weekday() + 1), str(now.weekday() + 1))
+    weekday_cn = weekday_map.get(now.strftime('%w'), now.strftime('%w'))
     result = result.replace(f"星期{now.strftime('%w')}", f"星期{weekday_cn}")
     logger.info(f"Tool get_current_time: {result}")
     return result

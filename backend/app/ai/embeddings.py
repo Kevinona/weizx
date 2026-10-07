@@ -232,7 +232,7 @@ class EmbeddingManager:
     def embed_query(self, text: str) -> list[float]:
         """单条查询文本转向量。"""
         if not text:
-            self._ensure_client()
+            # 空文本不需要加载模型，直接返回零向量
             return [0.0] * self._dimension
 
         self._ensure_client()
