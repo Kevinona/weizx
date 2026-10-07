@@ -6,11 +6,11 @@
 
 本地数据库收消息 · AppleScript 视觉定位 · 可配置的 AI 回复
 
-[![Build](https://img.shields.io/badge/build-macOS-blue)](https://github.com/kevinsweizx/weizx/actions)
+[![Build](https://img.shields.io/badge/build-macOS-blue)](https://github.com/Kevinona/weizx/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue)](#license)
 [![Forked from](https://img.shields.io/badge/forked%20from-zqaini002%2Fweix-14b8a6)](https://github.com/zqaini002/weix)
 
-**[快速开始](#快速开始) · [架构](#系统架构) · [平台差异](#平台支持) · [反馈问题](https://github.com/kevinsweizx/weizx/issues)**
+**[快速开始](#快速开始) · [架构](#系统架构) · [平台差异](#平台支持) · [反馈问题](https://github.com/Kevinona/weizx/issues)**
 
 </div>
 
@@ -80,7 +80,7 @@
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/kevinsweizx/weizx.git
+git clone https://github.com/Kevinona/weizx.git
 cd weizx
 ```
 
