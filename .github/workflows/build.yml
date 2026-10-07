@@ -1,0 +1,149 @@
+name: Build (macOS)
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Build Backend (PyInstaller)
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r backend/requirements.txt
+          pip install pyinstaller
+          cp config/config.example.yaml config/config.yaml
+          mkdir -p data
+          touch data/.gitkeep
+          pyinstaller \
+            --name=Weizx \
+            --onedir \
+            --console \
+            --clean \
+            --noconfirm \
+            --paths=backend \
+            --add-data "config:config" \
+            --add-data "data:data" \
+            --add-data "frontend/dist:frontend_dist" \
+            --add-data "backend/app/core/mach_helper:app/core" \
+            --hidden-import=uvicorn.logging \
+            --hidden-import=uvicorn.loops.auto \
+            --hidden-import=uvicorn.protocols.http.auto \
+            --hidden-import=sqlalchemy.ext.asyncio \
+            --hidden-import=aiosqlite \
+            --hidden-import=chromadb \
+            --hidden-import=sentence_transformers \
+            --hidden-import=tiktoken \
+            --hidden-import=langchain \
+            --hidden-import=jieba \
+            --hidden-import=passlib.handlers.bcrypt \
+            --hidden-import=pycryptodome \
+            --collect-all chromadb \
+            --collect-all sentence_transformers \
+            backend/app/main.py
+
+      - name: Package (DMG)
+        run: |
+          mkdir -p dist/Weizx.app/Contents/MacOS
+          cp -r dist/Weizx/* dist/Weizx.app/Contents/MacOS/
+          cat > dist/Weizx.app/Contents/MacOS/start_weizx.sh << 'EOF'
+          #!/bin/bash
+          DIR="$(cd "$(dirname "$0")" && pwd)"
+          "$DIR/Weizx" &
+          echo "Weizx: http://localhost:8000"
+          wait
+          EOF
+          chmod +x dist/Weizx.app/Contents/MacOS/start_weizx.sh
+          hdiutil create -volname Weizx -srcfolder dist/Weizx.app -ov -format UDZO dist/Weizx-macOS.dmg
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Weizx-macOS
+          path: dist/Weizx-macOS.dmg
+
+  release:
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    needs: [build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: weizx-release-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: Create Versioned Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            Weizx-macOS/Weizx-macOS.dmg
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Latest Test Build
+        if: github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_master="$(gh api "repos/$GH_REPO/git/ref/heads/master" --jq .object.sha)"
+          if [[ "$current_master" != "$GITHUB_SHA" ]]; then
+            echo "Skipping superseded build: $GITHUB_SHA"
+            exit 0
+          fi
+          cat > release-notes.md << EOF
+          ## 最新自动构建 · 测试版 (macOS only)
+
+          来自 master，提交：$GITHUB_SHA
+          [构建日志](https://github.com/$GH_REPO/actions/runs/$GITHUB_RUN_ID)
+
+          - macOS：下载 Weizx-macOS.dmg。
+          - Web 管理地址：http://127.0.0.1:8000
+          - 首次使用需填写自己的 API key、配置白名单，并授予「辅助功能」与「屏幕录制」权限。
+          - 包内仅使用配置模板；不包含开发者密钥、聊天记录或本机数据库。
+
+          此页面随 master 构建更新；测试版与正式版本分开展示。
+          EOF
+          files=(Weizx-macOS/Weizx-macOS.dmg)
+          for file in "${files[@]}"; do test -s "$file"; done
+          if gh release view nightly >/dev/null 2>&1; then
+            gh api --method PATCH "repos/$GH_REPO/git/refs/tags/nightly" -f sha="$GITHUB_SHA" -F force=true >/dev/null
+            gh release upload nightly "${files[@]}" --clobber
+            gh release edit nightly --title 'Weizx · 最新测试版' --prerelease --latest=false --notes-file release-notes.md
+          else
+            gh release create nightly "${files[@]}" --target "$GITHUB_SHA" --title 'Weizx · 最新测试版' --prerelease --latest=false --notes-file release-notes.md
+          fi
