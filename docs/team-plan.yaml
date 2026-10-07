@@ -1,0 +1,151 @@
+# weizx 全功能复刻团队计划
+
+> **状态（2026-10-07）**：项目骨架已建好，等待 mavis daemon CLI 修复后用
+> `mavis team plan run docs/team-plan.yaml` 触发执行。
+> 现阶段先用最小 YoY 推进：Phase 1（macOS 核心路径实机验证）必须先跑通再展开。
+
+---
+
+## 阶段划分
+
+| Phase | 名称 | 关键产出 | 阻塞？ |
+|-------|------|----------|--------|
+| P1 | macOS 核心路径实机验证 | live_reply_probe.py + 密钥提取 + 发送验证 | 阻塞所有后续 |
+| P2 | AI 层 | LangChain 链路、工具、Person Skill | 阻塞 P3 |
+| P3 | 工作流 / 业务 | 规则、状态机、模板、转接 | 阻塞 P4 |
+| P4 | 跨切面 | 防封、统计、定时、API | 阻塞 P5 |
+| P5 | 前端 | Vue 3 全页面 | 阻塞 P6 |
+| P6 | 运维 | runbook + 实机验收 | 收尾 |
+
+## 任务清单（17 个核心任务）
+
+### Phase 1 — macOS 核心路径（最高优先级，必须先跑通）
+
+#### T1: 写 macOS 版 live_reply_probe.py
+- **owner**: backend-platform-engineer
+- **产出**: `backend/live_reply_probe.py`
+- **镜像 Windows 版功能**：默认仅检查联系人；`--allow-vision` 启用视觉；`--send` 发送；`--alternate-with` 二联系人交替
+- **报告路径**: `data/live_reply_probe_result.json`
+- **verify**: 文件存在 + CLI 参数正确 + 默认不发消息 + 接口对等 Windows 版
+
+#### T2: 实机编译并运行 mach_helper
+- **owner**: backend-platform-engineer
+- **产出**: `data/key_extraction_smoke_<date>.json` + `data/all_keys.json`
+- **verify**: 编译通过 + PID 找到 + key 提取 < 10s + DB 校验通过 + 报告不含 key
+
+#### T3: 实机跑通 DB 监听 → AI 回复 → AppleScript 发送
+- **owner**: backend-platform-engineer
+- **产出**: `data/db_monitor_smoke_<date>.json`
+- **verify**: 检测到消息 + AI < 30s + 发送 < 15s + 标题匹配 + 频率未触发
+
+### Phase 2 — AI 层
+
+#### T4: 审查并补全 ai/ 模块测试
+- **owner**: backend-platform-engineer
+- **产出**: `backend/tests/test_ai_*.py`
+- **verify**: pytest 全部通过 + 无 Windows 依赖
+
+#### T5: 工具调用（4 类工具 + 测试）
+- **owner**: backend-platform-engineer
+- **产出**: `backend/app/ai/tools.py` 真实可用 + 4 个测试文件
+- **verify**: 每工具 ≥ 3 测试 + 缺 key 降级
+
+#### T6: Person Skill（本人人设）
+- **owner**: backend-platform-engineer
+- **产出**: `style_distiller.py` + `persona_api.py`
+- **verify**: test_persona_skill 通过 + 空数据不报错 + prompt 不含敏感信息
+
+### Phase 3 — 工作流 / 业务
+
+#### T7: 规则引擎（关键词 / 正则 / 意图）
+- **owner**: backend-platform-engineer
+- **verify**: 4 类规则各 ≥ 1 测试
+
+#### T8: 工作流引擎（陪玩点单状态机）
+- **owner**: backend-platform-engineer
+- **verify**: 4 步流转 + 状态持久化
+
+#### T9: 模板 + 转发
+- **owner**: backend-platform-engineer
+- **verify**: 4 类模板 + 转发 ≥ 2 测试
+
+### Phase 4 — 跨切面
+
+#### T10: 防封号（频率 + 冷却 + 熔断）
+- **owner**: backend-platform-engineer
+- **verify**: 4 策略各 ≥ 1 测试 + 熔断恢复后停止
+
+#### T11: 统计（排行 + 热力 + TF-IDF + AI 摘要）
+- **owner**: backend-platform-engineer
+- **verify**: 4 类输出各 ≥ 1 测试 + 缺数据不报错
+
+#### T12: 定时任务（日报 + 周报 + 清理 + 健康）
+- **owner**: backend-platform-engineer
+- **verify**: 4 类任务注册 + 清理逻辑
+
+#### T13: API 收尾（auth + 各 endpoint）
+- **owner**: backend-platform-engineer
+- **verify**: smoke per endpoint + 前端联通
+
+### Phase 5 — 前端
+
+#### T14: Vue 3 管理后台全页面
+- **owner**: frontend-engineer
+- **产出**: 12 类页面 + 联通 13 个 API
+- **verify**: npm run build 通过 + 首页加载 + 非空页可保存
+
+### Phase 6 — 运维
+
+#### T15: docs/runbook.md（操作手册）
+- **owner**: backend-platform-engineer
+- **产出**: 安装 + 配置 + 启动 + 验收 + 排障 + 封号应对
+
+#### T16: docs/runbook-live-test.md（实机验收）
+- **owner**: backend-platform-engineer
+- **产出**: 2 联系人 6 消息步骤 + 报告解读
+
+#### T17: 真实 E2E 实测
+- **owner**: backend-platform-engineer（手动）
+- **产出**: `data/e2e_result_<date>.json`
+- **verify**: 6 条消息全部回读到正确会话
+
+---
+
+## 任务依赖图
+
+```
+T1 ─→ T3
+T2 ─→ T3
+T3 ─→ T17
+T4 ─→ T5, T6
+T7 ─→ T8 ─→ T9
+T10, T11 ─→ T13
+T13 ─→ T14
+T1 ─→ T16 ─→ T17
+T15, T16 独立
+```
+
+---
+
+## 当前可执行（不等 daemon）
+
+虽然 `mavis team plan run` 暂时不可用，但下列任务可立即用 `task` tool 直接 dispatch：
+
+- **T15 + T16**：文档任务，不需要编译/运行
+- **T4 + T7 + T10 + T11**：纯代码审查 + 补测试，不需要实机
+
+下列任务需 Kevin 配合（个人微信 + 权限）：
+
+- T2 / T3 / T17（实机）
+- T1（写脚本，但不发送）
+
+---
+
+## 推进策略
+
+**先用最小闭环验证 macOS 路径可行**：
+1. **立刻做**：T15 + T16 写文档（不等 daemon）
+2. **下个 session 做**：T1 + T3 + T4 + T7 + T10 并行 dispatch（写代码 + 补测试 + 文档同步）
+3. **最后做**：T2 / T3 / T17 实机验证（需要你配合启动微信）
+
+详细任务描述与 verify 验收点见各 task 文件 `docs/team-plan-tasks/T*.md`（待生成）。
