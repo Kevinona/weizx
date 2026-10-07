@@ -332,19 +332,50 @@ class WeixAgent:
     # Checkpoint 持久化
     # ------------------------------------------------------------------
 
+    def _checkpoint_storage(self) -> dict | None:
+        """获取 checkpointer 内部的存储 dict。
+
+        兼容两层来源：
+        - 旧版本 / 测试桩使用 ``_checkpoints``（直接是 ``{thread_id: payload}``）。
+        - langgraph ``MemorySaver``（>= 0.2）使用 ``storage``（``{thread_id: {ns: {id: val}}}``），
+          这里仅返回 ``storage`` 的 ``thread_id`` 这一层，外部仍按 dict 协议使用。
+
+        当两者都不可用时返回 ``None``，由调用方决定是否跳过持久化。
+        """
+        cp = self._checkpointer
+        legacy = getattr(cp, "_checkpoints", None)
+        if isinstance(legacy, dict):
+            return legacy
+        storage = getattr(cp, "storage", None)
+        if isinstance(storage, dict):
+            return storage
+        return None
+
     def _save_checkpoints(self) -> None:
         """将 MemorySaver 中的 checkpoints 序列化到 JSON 文件。"""
         try:
             path = _checkpoints_path()
             os.makedirs(os.path.dirname(path), exist_ok=True)
 
+            source = self._checkpoint_storage()
+            if source is None:
+                logger.debug(
+                    "Checkpointer has no _checkpoints/storage dict, skipping save"
+                )
+                return
+
             data = {}
-            for thread_id, checkpoint in self._checkpointer._checkpoints.items():
-                data[thread_id] = {
-                    "checkpoint": checkpoint.get("checkpoint", {}),
-                    "metadata": checkpoint.get("metadata", {}),
-                    "channel_values": checkpoint.get("channel_values", {}),
-                }
+            for thread_id, checkpoint in source.items():
+                if isinstance(checkpoint, dict):
+                    data[thread_id] = {
+                        "checkpoint": checkpoint.get("checkpoint", {}),
+                        "metadata": checkpoint.get("metadata", {}),
+                        "channel_values": checkpoint.get("channel_values", {}),
+                    }
+                else:
+                    # MemorySaver.storage[thread_id] 是一个嵌套 defaultdict，
+                    # 直接退化为字符串占位，避免 AttributeError。
+                    data[thread_id] = {"raw": str(checkpoint)}
 
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, default=str)
@@ -362,18 +393,42 @@ class WeixAgent:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
-            if data:
-                self._checkpointer._checkpoints.update(data)
-                logger.info(f"Loaded {len(data)} checkpoints from {path}")
+            if not data:
+                return
+
+            target = self._checkpoint_storage()
+            if target is None:
+                logger.warning(
+                    "Cannot load checkpoints: checkpointer has no usable storage dict"
+                )
+                return
+
+            for thread_id, payload in data.items():
+                target[thread_id] = payload
+            logger.info(f"Loaded {len(data)} checkpoints from {path}")
         except Exception as exc:
             logger.warning(f"Failed to load checkpoints: {exc}")
 
     def _discard_checkpoint(self, session_id: str) -> None:
         """丢弃指定会话的 LangGraph checkpoint，避免失败工具调用污染重试。"""
         try:
-            checkpoints = getattr(self._checkpointer, "_checkpoints", None)
-            if isinstance(checkpoints, dict) and session_id in checkpoints:
-                checkpoints.pop(session_id, None)
+            storage = self._checkpoint_storage()
+            removed = False
+            if isinstance(storage, dict) and session_id in storage:
+                storage.pop(session_id, None)
+                removed = True
+            # MemorySaver 还会把待写入的 writes 按 (thread_id, ...) 分组，
+            # 同样需要清理，否则重试时旧 ToolMessage 会复活。
+            writes = getattr(self._checkpointer, "writes", None)
+            if isinstance(writes, dict):
+                stale = [
+                    k for k in list(writes.keys())
+                    if isinstance(k, tuple) and k and k[0] == session_id
+                ]
+                for k in stale:
+                    writes.pop(k, None)
+
+            if removed:
                 self._save_checkpoints()
                 logger.info("Discarded checkpoint for failed session=%s", session_id)
         except Exception as exc:
