@@ -131,9 +131,18 @@ class RuleEngine:
                 continue
             compiled = rule.get("_compiled", [])
             patterns_list = rule.get("patterns", [])
-            # Compile patterns lazily.
+            # Compile patterns lazily. Invalid patterns are skipped with a
+            # warning rather than raised, so one bad rule can't break
+            # matching for every other rule in the table.
             if not compiled and patterns_list:
-                compiled = [re.compile(p, re.IGNORECASE) for p in patterns_list if isinstance(p, str)]
+                compiled = []
+                for p in patterns_list:
+                    if not isinstance(p, str):
+                        continue
+                    try:
+                        compiled.append(re.compile(p, re.IGNORECASE))
+                    except re.error:
+                        logger.warning("Invalid regex pattern skipped: %r", p)
                 rule["_compiled"] = compiled
 
             for pattern_obj in compiled:
