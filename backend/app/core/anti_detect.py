@@ -32,8 +32,9 @@ class AntiDetectConfig:
 
     # 频率限制
     max_messages_per_minute: int = 20
-    min_send_interval: float = 15.0  # 最小发送间隔 (秒)
-    max_send_interval: float = 45.0  # 最大发送间隔 (秒)
+    # weizx 仅 macOS：发送间隔 8-20s (见 README 防封号策略)
+    min_send_interval: float = 8.0  # 最小发送间隔 (秒)
+    max_send_interval: float = 20.0  # 最大发送间隔 (秒)
 
     # 会话冷却
     cooldown_per_session: float = 30.0  # 每个会话冷却时间 (秒)
@@ -42,7 +43,7 @@ class AntiDetectConfig:
     circuit_breaker_threshold: int = 3  # 连续失败阈值
     circuit_breaker_cooldown: float = 300.0  # 熔断冷却时间 (秒)
 
-    # 平台特定最小间隔
+    # 平台特定最小间隔 (向后兼容字段，实际由 min_send_interval 直接生效)
     platform_min_interval: float = 8.0
 
 
@@ -223,12 +224,12 @@ class AntiDetect:
     def _apply_random_delay(self) -> None:
         """应用随机延迟模拟人类行为。
 
-        使用平台最小间隔覆盖配置中的最小间隔。
+        macOS 默认 8-20s；只有频率限制可以拉低下限 (避免违反每分钟条数上限)。
         """
+        # 频率上限：每条至少间隔 60/max_messages_per_minute 秒
         min_interval = max(
             self._config.min_send_interval,
-            self._config.platform_min_interval,
-            self._config.max_messages_per_minute / 60.0,  # 确保不超过频率限制
+            self._config.max_messages_per_minute / 60.0,
         )
         max_interval = self._config.max_send_interval
 
@@ -247,23 +248,18 @@ class AntiDetect:
             else {}
         )
 
-        # 平台特定配置
-        macos_min = 8.0
-        is_macos = app_config.get_platform() == "darwin"
-        if is_macos and "macos" in anti_cfg:
-            macos_cfg = anti_cfg["macos"]
-            macos_min = float(macos_cfg.get("min_send_interval", 8.0))
+        # weizx 仅 macOS：读取 macos 子块的 min/max_send_interval，
+        # 缺省回退到 README 防封号策略中的 8-20s。
+        macos_cfg = anti_cfg.get("macos", {}) if isinstance(anti_cfg, dict) else {}
+        macos_min = float(macos_cfg.get("min_send_interval", 8.0))
+        macos_max = float(macos_cfg.get("max_send_interval", 20.0))
 
         return AntiDetectConfig(
             max_messages_per_minute=int(
                 anti_cfg.get("max_messages_per_minute", 20)
             ),
-            min_send_interval=float(
-                anti_cfg.get("min_send_interval", 15)
-            ),
-            max_send_interval=float(
-                anti_cfg.get("max_send_interval", 45)
-            ),
+            min_send_interval=macos_min,
+            max_send_interval=macos_max,
             cooldown_per_session=float(
                 anti_cfg.get("cooldown_per_session", 30)
             ),
