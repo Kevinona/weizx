@@ -184,7 +184,7 @@ func handle(_ req: HTTPRequest) -> Data {
         return jsonOK([
             "name": "WeChatHelper",
             "version": "0.1.0-mvp",
-            "phase": "1 — list only (no SQLCipher yet)",
+            "phase": "2 — /api/db/list + /api/db/raw (file fetch only; decryption in Python)",
         ])
     case "/api/db/list":
         let dbs = listDatabases()
@@ -192,10 +192,45 @@ func handle(_ req: HTTPRequest) -> Data {
             "count": dbs.count,
             "databases": dbs,
         ])
+    case "/api/db/raw":
+        return handleRawFile(query: req.query)
     default:
         return errorResponse(status: "404 Not Found",
                             message: "no handler for \(req.path)")
     }
+}
+
+// GET /api/db/raw?path=<absolute path>
+// Returns the raw bytes of the file. Caller (weizx Python) is
+// responsible for SQLCipher decryption using pycryptodome — keeps
+// the Swift helper free of any database engine.
+func handleRawFile(query: [String: String]) -> Data {
+    guard let rawPath = query["path"] else {
+        return errorResponse(status: "400 Bad Request",
+                            message: "missing 'path' query param")
+    }
+    let path = (rawPath as NSString).expandingTildeInPath
+    let fm = FileManager.default
+    guard fm.fileExists(atPath: path) else {
+        return errorResponse(status: "404 Not Found",
+                            message: "file not found: \(path)")
+    }
+    guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
+        return errorResponse(status: "500 Internal Server Error",
+                            message: "failed to read: \(path)")
+    }
+    // Stream the raw bytes with a generic octet-stream Content-Type.
+    // No JSON wrapper — caller writes to /tmp first then opens with
+    // SQLCipher (or pycryptodome direct page decryption).
+    var header = "HTTP/1.1 200 OK\r\n"
+    header += "Content-Type: application/octet-stream\r\n"
+    header += "Content-Length: \(data.count)\r\n"
+    header += "Connection: close\r\n"
+    header += "X-Wechat-Size: \(data.count)\r\n"
+    header += "\r\n"
+    var out = Data(header.utf8)
+    out.append(data)
+    return out
 }
 
 // MARK: - Server loop
