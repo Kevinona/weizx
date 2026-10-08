@@ -27,10 +27,9 @@ def _normalize_db_key_path(path: str) -> str:
 def _key_matches_db_path(key_path: str, full_path: str) -> bool:
     normalized_key = _normalize_db_key_path(key_path)
     normalized_full = _normalize_db_key_path(full_path)
-    basename = os.path.basename(full_path)
     if "/" in normalized_key:
         return normalized_full.endswith(normalized_key)
-    return os.path.normcase(key_path) == os.path.normcase(basename)
+    return normalized_key == os.path.basename(normalized_full)
 
 
 class PersonaUpdateRequest(BaseModel):

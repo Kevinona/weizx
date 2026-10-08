@@ -188,6 +188,8 @@ class LangGraphWorkflowEngine:
             config = {"configurable": {"thread_id": f"wf:{name}:{user_id}"}}
             state = await self._get_current_state(config)
             if state and not state.get("ended", False):
+                # L9 fix: pass a sentinel that the state node honors
+                # so the cancel isn't silently overridden by `is_end = False`
                 update = {"ended": True, "action": "none", "reply": ""}
                 await graph.ainvoke(update, config)
                 return True
@@ -270,7 +272,9 @@ class LangGraphWorkflowEngine:
                     "reply": reply,
                     "action": "forward",
                     "forward_targets": forward_targets,
-                    "ended": False,
+                    # Honor pre-existing ended=True (e.g. set by cancel_workflow)
+                    # so cancellation isn't silently overwritten by is_end=False.
+                    "ended": bool(state.get("ended", False)),
                 }
 
             return {
@@ -278,7 +282,7 @@ class LangGraphWorkflowEngine:
                 "reply": reply,
                 "action": "reply" if not is_end else "none",
                 "forward_targets": forward_targets,
-                "ended": is_end,
+                "ended": is_end or bool(state.get("ended", False)),
             }
 
         return node_fn
@@ -358,8 +362,15 @@ class LangGraphWorkflowEngine:
     # ------------------------------------------------------------------
 
     async def _get_current_state(self, config: dict) -> dict[str, Any] | None:
-        """查询指定 config 的当前状态快照。"""
-        for name, graph in self._graphs.items():
+        """查询指定 config 的当前状态快照。
+
+        Note: 每个 graph 的 checkpointer 用 thread_id 隔离，所以一个 config 只
+        属于一个 graph。下面的循环是 N 次尝试命中一次（多数返回 None）。在
+        workflow 数量 < 100 时 O(N) 可以接受；如果以后扩到几千个 workflow，
+        可以用 config["configurable"]["thread_id"] 反查 workflow name 再单次
+        调用 graph.get_state。
+        """
+        for graph in self._graphs.values():
             try:
                 sn = graph.get_state(config)
                 if sn and sn.values:
@@ -382,8 +393,13 @@ class LangGraphWorkflowEngine:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _extract_action(result: dict) -> dict[str, Any]:
-        """从 graph 输出中提取 action dict。"""
+    def _extract_action(result: dict | None) -> dict[str, Any]:
+        """从 graph 输出中提取 action dict。
+
+        Defensive: result 可能是 None（极端情况下 graph 返回 None）。
+        """
+        if not isinstance(result, dict):
+            return {"action": "none", "reply": "", "forward_targets": [], "ended": False}
         return {
             "action": result.get("action", "none"),
             "reply": result.get("reply", ""),
