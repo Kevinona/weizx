@@ -30,15 +30,21 @@ func resolveDBRoot() -> String {
     if let override = ProcessInfo.processInfo.environment["WEIXX_DB_ROOT"] {
         return (override as NSString).expandingTildeInPath
     }
+    let fm = FileManager.default
+    // 1. Try the real WeChat sandbox (requires FDA via .app bundle)
     let sandbox = ("~/Library/Containers/com.tencent.xinWeChat/"
                   + "Data/Documents/xwechat_files/" as NSString)
         .expandingTildeInPath
-    if FileManager.default.isReadableFile(atPath: sandbox) {
+    if fm.fileExists(atPath: sandbox) && fm.isReadableFile(atPath: sandbox) {
         return sandbox
     }
-    // Fallback: non-sandbox copy the user can populate without FDA
+    // 2. Fallback: non-sandbox copy the user populated manually
     let fallback = ("~/xwechat_files/" as NSString).expandingTildeInPath
-    return fallback
+    if fm.fileExists(atPath: fallback) {
+        return fallback
+    }
+    // Both missing — return sandbox path so caller gets a clear error
+    return sandbox
 }
 
 let WEIX_DB_ROOT = resolveDBRoot()
@@ -261,6 +267,22 @@ listener.stateUpdateHandler = { state in
             "WeChatHelper listening on \(LISTEN_HOST):\(LISTEN_PORT)\n"
                 .data(using: .utf8) ?? Data()
         )
+        // Test if we can read the sandbox. If not, prompt the user for FDA.
+        let fm = FileManager.default
+        let testPath = WEIX_DB_ROOT
+        if !fm.isReadableFile(atPath: testPath) && fm.fileExists(atPath: testPath) {
+            // Path exists but unreadable → TCC blocked.
+            // Trigger macOS's FDA prompt by accessing a known-protected file.
+            _ = (try? String(contentsOfFile: "/Library/Application Support/com.apple.TCC")) ?? ""
+            let warning = """
+            ⚠️  \(WEIX_DB_ROOT) exists but not readable.
+               → Need Full Disk Access. Open System Settings → Privacy & Security
+                 → Full Disk Access → add 'WeChatHelper.app' (or just the binary).
+               → Then restart WeChatHelper.
+
+            """
+            FileHandle.standardError.write(warning.data(using: .utf8) ?? Data())
+        }
     case .failed(let err):
         FileHandle.standardError.write(
             "WeChatHelper failed: \(err)\n".data(using: .utf8) ?? Data()
