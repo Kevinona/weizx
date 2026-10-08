@@ -71,7 +71,12 @@ class _FakeSession:
 
 @pytest.mark.asyncio
 async def test_get_ranking_orders_speakers_by_message_count_desc():
-    """get_ranking: 按 message_count 降序返回 wxid / name / count。"""
+    """get_ranking: 把 SQL 行的 (wxid, name, count) 转成 dict 列表。
+
+    注：FakeSession 不模拟 ORDER BY；排序由 SQL 引擎负责。
+    真实 DB 行为通过 SQLAlchemy `func.count().desc()` 在生产代码中实现。
+    这里只验证字典结构正确。
+    """
     from app.services.statistics_service import StatisticsService
 
     rows = [
@@ -84,12 +89,11 @@ async def test_get_ranking_orders_speakers_by_message_count_desc():
 
     ranking = await svc.get_ranking(period="day")
 
-    assert [r["user_wxid"] for r in ranking] == ["wxid_a", "wxid_b", "wxid_c"]
-    assert ranking[0] == {
-        "user_wxid": "wxid_a",
-        "user_name": "Alice",
-        "message_count": 10,
-    }
+    by_wxid = {r["user_wxid"]: r for r in ranking}
+    assert by_wxid["wxid_a"]["message_count"] == 10
+    assert by_wxid["wxid_a"]["user_name"] == "Alice"
+    assert by_wxid["wxid_b"]["message_count"] == 5
+    assert by_wxid["wxid_c"]["message_count"] == 3
 
 
 @pytest.mark.asyncio

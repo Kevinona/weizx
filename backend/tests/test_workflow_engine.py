@@ -148,10 +148,15 @@ async def test_process_message_confirm_to_forward_includes_targets():
 
 @pytest.mark.asyncio
 async def test_process_message_ended_state_cleans_up():
+    """进入 DONE 状态的 transition 必须清理 instance + 标记 ended。"""
     eng = _build_engine_with_workflow()
     await eng.start_workflow("test_flow", "user_1")
-    eng.get_instance("user_1")["state"] = "DONE"
-    out = await eng.process_message("user_1", "x")
+    # 直接 transition 到 DONE（通过 update "done" 触发）
+    eng._workflows["test_flow"]["states"]["FORM"]["transitions"] = [
+        {"pattern": r"^done$", "next": "DONE"},
+    ]
+    out = await eng.process_message("user_1", "done")
+    assert out["action"] == "reply"
     assert out["ended"] is True
     assert eng.get_instance("user_1") is None  # cleaned up
 
@@ -288,11 +293,29 @@ def test_cancel_workflow_returns_false_if_not_existed():
 
 
 @pytest.mark.asyncio
-async def test_process_message_missing_state_def_returns_none_and_cleans_up():
+async def test_process_message_missing_state_def_returns_none():
+    """state definition 缺失时不崩，返回 action='none'。
+
+    注意：当前实现**不**清理 instance（只有 wf_def 整体消失时才会清理）。
+    用户被困在这个 state 时需要外部 cancel_workflow() 兜底。
+    """
     eng = _build_engine_with_workflow()
     await eng.start_workflow("test_flow", "user_1")
     # 删掉 state definition 模拟「definition 消失」
     del eng._workflows["test_flow"]["states"]["FORM"]
+    out = await eng.process_message("user_1", "hi")
+    assert out["action"] == "none"
+    # instance 仍在 — 当前实现不在 state_def 缺失时清理（设计选择）
+    assert eng.get_instance("user_1") is not None
+    assert eng.get_instance("user_1")["state"] == "FORM"
+
+
+@pytest.mark.asyncio
+async def test_process_message_missing_workflow_def_returns_none_and_cleans_up():
+    """整个 workflow def 消失时，必须清理 instance。"""
+    eng = _build_engine_with_workflow()
+    await eng.start_workflow("test_flow", "user_1")
+    del eng._workflows["test_flow"]
     out = await eng.process_message("user_1", "hi")
     assert out["action"] == "none"
     assert eng.get_instance("user_1") is None

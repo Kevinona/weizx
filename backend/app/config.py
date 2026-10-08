@@ -20,7 +20,7 @@ class Config(BaseSettings):
     auto_reply: dict[str, Any] = {}
     templates: list[dict[str, Any]] = []
     workflows: list[dict[str, Any]] = []
-    forward_rules: list[dict[str, Any]] = {}
+    forward_rules: list[dict[str, Any]] = []
     anti_detect: dict[str, Any] = {}
     statistics: dict[str, Any] = {}
     admin: dict[str, Any] = {}
@@ -33,7 +33,14 @@ class Config(BaseSettings):
             path = os.getenv("WEIX_CONFIG", str(get_config_dir() / "config.yaml"))
 
         if not Path(path).exists():
-            raise FileNotFoundError(f"配置文件不存在: {path}")
+            # Tolerate missing config: return defaults. Production deployments
+            # may not have a config file yet (e.g. first run after install);
+            # tests can also import without an example file in place.
+            import logging
+            logging.getLogger(__name__).warning(
+                "Config file not found: %s — falling back to defaults", path
+            )
+            return cls()
 
         with open(path, encoding="utf-8") as f:
             raw = yaml.safe_load(f) or {}

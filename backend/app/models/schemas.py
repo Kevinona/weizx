@@ -17,13 +17,13 @@ class TokenResponse(BaseModel):
 
 # --- Messages ---
 class MessageOut(BaseModel):
-    msg_id: str
+    msg_id: str = Field(..., max_length=64)
     msg_type: int
     content: str
-    sender_wxid: str
-    sender_name: str = ""
-    room_id: str = ""
-    room_name: str = ""
+    sender_wxid: str = Field(..., max_length=64)
+    sender_name: str = Field(default="", max_length=128)
+    room_id: str = Field(default="", max_length=64)
+    room_name: str = Field(default="", max_length=128)
     is_group: bool = False
     create_time: datetime = Field(default_factory=datetime.now)
 
@@ -144,12 +144,13 @@ class ForwardRuleUpdate(BaseModel):
 class ForwardRuleOut(ForwardRuleCreate):
     id: int
     created_at: datetime
+    updated_at: datetime
 
 
 # --- Statistics ---
 class RankingItem(BaseModel):
-    user_wxid: str
-    user_name: str
+    user_wxid: str = Field(..., max_length=64)
+    user_name: str = Field(default="", max_length=128)
     message_count: int
 
 
@@ -175,16 +176,16 @@ class StatisticsOverview(BaseModel):
 
 # --- Orders ---
 class OrderOut(BaseModel):
-    order_id: str
-    user_wxid: str
-    user_name: str
-    game: str
-    rank: str
+    order_id: str = Field(..., max_length=32)
+    user_wxid: str = Field(..., max_length=64)
+    user_name: str = Field(default="", max_length=128)
+    game: str = Field(default="", max_length=64)
+    rank: str = Field(default="", max_length=64)
     hours: float
     budget: float
     notes: str = ""
     status: str
-    assignee_name: str = ""
+    assignee_name: str = Field(default="", max_length=128)
     created_at: datetime
 
 
