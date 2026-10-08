@@ -1,0 +1,368 @@
+[
+  {
+    "isFramework" : true,
+    "moduleName" : "Combine",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Combine-WAMSAZT600VT.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "CoreFoundation",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/CoreFoundation-21NYO68WUCRZZ.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Darwin",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Darwin-1THS0B5SG86T3.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Dispatch",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Dispatch-1FVO88RHUS3R5.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Distributed",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Distributed-1PH9LM341PL2G.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Foundation",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Foundation-2HL6CWT4WVSNV.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "IOKit",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/IOKit-1RQJ5J9FJKXVK.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Network",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Network-1E175A47IE6RG.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "ObjectiveC",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/ObjectiveC-N94GZMO115Y5.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Observation",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Observation-3PBBQGHVRUFVP.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Swift",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Swift-31ID82J1WPQGE.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "System",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/System-2WR45MCPBAB2O.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "XPC",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/XPC-YFZSFYUXL8VB.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_Builtin_float",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_float-DBNL2CMIPTQA.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_Concurrency",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Concurrency-29V59WAV7STPM.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation1",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation1-367D48K7O0PRG.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation2",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation2-3NZTU0A29LLID.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation3",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation3-KCRQIGAZ99DN.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_StringProcessing",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_StringProcessing-12E2XF5CPPNBP.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "os",
+    "modulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/os-18SXKR1FCET8Q.swiftmodule"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CFNetwork.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/CFNetwork-3GL8S3NQK64FJTGC1IV63J1JR.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CFNetwork"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreFoundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/CoreFoundation-AMW3LEQTRT7XV4IY9AHG7XXRV.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreFoundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/CoreServices.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/CoreServices-5A9GIYT6LKSIQODYG7P7413BZ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreServices"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/Darwin.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Darwin-9O9CKQTVTKH8IZGK83QP2CH5O.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Darwin"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/DiskArbitration.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/DiskArbitration-C92NTCDY6N0EE190TCUCVM1G2.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "DiskArbitration"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/dispatch.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Dispatch-6IFERV2ETU6N33CA5M7BS3OVY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Dispatch"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/Foundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Foundation-EHHC107JN5PTP4QH0FNYVMR99.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Foundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/IOKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/IOKit-1BB3MCSCUV06NGBIAA6YEIFMC.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "IOKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinBasic.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/MachO-D0Q9QP08AW2S0WPOYSTD9P3CF.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "MachO"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/Network.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Network-5EF6Z1NSGFERV7YKUDEX1IZ34.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Network"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/ObjectiveC.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/ObjectiveC-1LDN4ID8Y2TFB1IENBDC6BTA1.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ObjectiveC"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/System\/Library\/Frameworks\/Security.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/Security-9GBGHTZHJOFG39B8Q0IGRB5K0.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Security"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/SwiftShims-9C3ABY15N3K1XUXCMRN8JVOHQ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "SwiftShims"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/xpc.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/XPC-EKFIZA6AYDXZ3CMC3K6KVK12B.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "XPC"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation1.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_AvailabilityInternal-7MN622IFS1NSBUPQID8X182Y2.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_AvailabilityInternal"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_float-1WAYU5HDUFRAI06R0OK20J6E6.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_float"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_inttypes-5G0HGPHQ78MMKPVD2RK5NZ5T1.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_inttypes"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_limits-4V364SKBUD2UYTNXQAEVUPS9G.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_limits"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdarg-12917R6HCBFVBW98IOS00GRNJ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdarg"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdatomic-6NWIYO2ECKWZSDGGYZZLQ1TTH.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdatomic"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdbool-2HDJ0LM3LLZV0EGSEZ66AJ20X.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdbool"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stddef-E8MCXV836N9L82ZXVZQIY14HY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stddef"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdint-5S9HKPXKQQUQG0CIVEF4ODR6K.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdint"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation1.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation1-5U261PJS3IVTRJ34L12HCCLO8.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation1"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation2.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation2-C3OOFP7G5CJ8CRJ2R0T0ZMFST.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation2"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation3.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation3-82B3S38IZWGU28YJUSRF14WZK.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation3"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/_SwiftConcurrencyShims-DIQLXKGNVICRRI02B19BZW1HR.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_SwiftConcurrencyShims"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/dnssd.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/dnssd-EX0E4VDGQTMLQ9CSESFNVNV5S.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "dnssd"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/launch.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/launch-57I0RFPID86LKDA5VGLAHQK06.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "launch"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/libDER\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/libDER-D3OHBITY57YPR8SPCJDKFUERX.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "libDER"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/libkern.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/libkern-68MKICQ3YPEXP1BOCCVOPS7CG.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "libkern"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/os-8OBTHN7IN0ZEUW5AERD0APRJU.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/os_object-2IWHWVWNCM1I0ZTWB6DXCES5V.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os_object"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/os_workgroup-AXTV0QZMI48PGLC3ZQI8QHQEU.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os_workgroup"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/ptrauth-657G66VC33O5ZAVR6QO8FGVTD.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ptrauth"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/ptrcheck-2KK5IZG0F3NBTODRM4PCNTC4K.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ptrcheck"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/c_standard_library.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/string_h-21EZJ0KMZNUBGSL1KKGAOTIMB.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "string_h"
+  },
+  {
+    "clangModuleMapPath" : "\/Library\/Developer\/CommandLineTools\/SDKs\/MacOSX27.0.sdk\/usr\/include\/DarwinFoundation2.modulemap",
+    "clangModulePath" : "\/Users\/kevin\/Documents\/GitHub\/weizx\/tools\/macos-helper\/.build\/out\/SDKExplicitPrecompiledModules\/sys_types-7Q74PXHZTXUWC2XUU1UK35MHC.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "sys_types"
+  }
+]
