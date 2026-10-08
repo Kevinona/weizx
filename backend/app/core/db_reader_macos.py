@@ -56,6 +56,10 @@ class MacOSDBReader(BaseDBReader):
             "~/Library/Containers/com.tencent.xinWeChat/"
             "Data/Library/Application Support/com.tencent.xinWeChat/"
         ),
+        # 非沙箱 fallback：用户用 Finder / osascript 把 xwechat_files
+        # 拷出来后的位置。Python 不继承 Terminal 的 Full Disk Access，
+        # 所以必须有一个非沙箱路径可用。
+        os.path.expanduser("~/xwechat_files/"),
     ]
 
     def __init__(self):
