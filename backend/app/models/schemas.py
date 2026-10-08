@@ -131,6 +131,16 @@ class ForwardRuleCreate(BaseModel):
     enabled: bool = True
 
 
+class ForwardRuleUpdate(BaseModel):
+    """Partial update for ForwardRule. All fields optional."""
+
+    name: str | None = None
+    trigger: str | None = None
+    targets: list[str] | None = None
+    template: str | None = None
+    enabled: bool | None = None
+
+
 class ForwardRuleOut(ForwardRuleCreate):
     id: int
     created_at: datetime

@@ -178,15 +178,15 @@ class WorkflowEngine:
             if not pattern:
                 continue
             try:
-                if re.search(pattern, msg, re.IGNORECASE):
-                    matched_next = tr.get("next", "")
-                    # Extract named groups into instance data.
-                    m = re.search(pattern, msg, re.IGNORECASE)
-                    if m:
-                        instance["data"].update(m.groupdict())
-                    break
+                m = re.search(pattern, msg, re.IGNORECASE)
             except re.error:
                 logger.warning("Invalid transition regex: %s", pattern)
+                continue
+            if m:
+                matched_next = tr.get("next", "")
+                # Extract named groups into instance data.
+                instance["data"].update(m.groupdict())
+                break
 
         if matched_next:
             logger.info(

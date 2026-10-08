@@ -13,7 +13,7 @@ from app.models.schemas import (
     RuleCreate, RuleOut, RuleUpdate,
     TemplateCreate, TemplateOut, TemplateUpdate,
     WorkflowCreate, WorkflowOut, WorkflowUpdate,
-    ForwardRuleCreate, ForwardRuleOut,
+    ForwardRuleCreate, ForwardRuleUpdate, ForwardRuleOut,
     SystemConfigUpdate, SystemConfigItem,
 )
 from app.config import get_config
@@ -233,12 +233,12 @@ async def create_forward_rule(rule: ForwardRuleCreate, session=Depends(get_sessi
 
 
 @router.put("/forward-rules/{rule_id}", response_model=ForwardRuleOut)
-async def update_forward_rule(rule_id: int, data: ForwardRuleCreate, session=Depends(get_session)):
+async def update_forward_rule(rule_id: int, data: ForwardRuleUpdate, session=Depends(get_session)):
     result = await session.execute(select(ForwardRule).where(ForwardRule.id == rule_id))
     record = result.scalar_one_or_none()
     if not record:
         raise HTTPException(404, "Forward rule not found")
-    for k, v in data.model_dump().items():
+    for k, v in data.model_dump(exclude_unset=True).items():
         setattr(record, k, v)
     await session.commit()
     await session.refresh(record)
@@ -337,7 +337,17 @@ async def trigger_job(job_id: str):
     if not job:
         raise HTTPException(404, f"Job {job_id} not found")
 
-    # Run the job immediately in background
     import asyncio
-    asyncio.create_task(job.func(*job.args, **job.kwargs))
+    import inspect
+
+    # APScheduler jobs can be sync or async. Wrap sync results so
+    # asyncio.create_task always receives a coroutine.
+    result = job.func(*job.args, **job.kwargs)
+    if inspect.iscoroutine(result):
+        asyncio.create_task(result)
+    else:
+        async def _noop():
+            return result
+
+        asyncio.create_task(_noop())
     return {"success": True, "job_id": job_id, "triggered": True}
