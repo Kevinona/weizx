@@ -150,7 +150,12 @@ def test_load_keys_env_fallback_persists_to_cache(empty_data_dir, monkeypatch):
 
 
 def test_load_keys_only_one_env_var_works(empty_data_dir, monkeypatch):
-    """只设 message key，不设 contact key：后者不出现在结果里。"""
+    """只设 message key，不设 contact key：后者不出现在结果里。
+
+    Note: WeChat 4.x 用了 per-db key 派生（PBKDF2 + 各自 salt），
+    所以同一 raw key 不能直接 mirror。Phase 3b 在 resolve_contact
+    加了 fallback：contact DB 找不到时扫 message DB。
+    """
     monkeypatch.setenv("WEIZX_WECHAT_DB_KEY", "x" * 64)
     # WEIZX_WECHAT_CONTACT_DB_KEY 不设
 

@@ -82,6 +82,81 @@ def resolve_contact(
     )
 
 
+def resolve_contact_via_message_db(
+    platform,
+    name_or_id: str,
+) -> tuple[str, str] | None:
+    """Fallback：contact DB 不可用时，扫 message DB 的 sender_wxid / sender_name。
+
+    WeChat 4.x 用 per-db 派生 key（master key 不够），所以常常只有
+    message_0.db 能解、contact.db 解不开。这里从 message 表里找联系人
+    替代品：所有给自己发过消息的人都在 Message 表里有 sender_wxid +
+    sender_name。
+    """
+    dbs = platform.db_reader.find_database_files()
+    target_dbs = [
+        d for d in dbs
+        if "message" in Path(d).name.lower() and d.endswith(".db")
+    ]
+    if not target_dbs:
+        return None
+
+    keys = platform.key_extractor.load_keys()
+    if not keys:
+        return None
+
+    candidates: list[tuple[str, str]] = []  # (wxid, name)
+    for db_path in target_dbs:
+        # 严格按文件 key 名匹配；不匹配就跳过（不要拿 message key
+        # 套到 biz_message_0.db 等不同派生 key 的文件上）
+        hex_key = None
+        for kp, kv in keys.items():
+            if Path(kp).name in db_path or Path(db_path).name in kp:
+                hex_key = kv
+                break
+        if hex_key is None:
+            continue
+
+        try:
+            if not platform.db_reader.open_db(db_path, bytes.fromhex(hex_key)):
+                continue
+            conn = platform.db_reader._sqlite_conn
+            if conn is None:
+                continue
+            # 找所有 Msg_% 表（消息会话表）
+            tables = conn.execute(
+                "SELECT name FROM sqlite_master "
+                "WHERE type='table' AND name LIKE 'Msg_%'"
+            ).fetchall()
+            for (table_name,) in tables:
+                try:
+                    rows = conn.execute(
+                        f'SELECT DISTINCT sender_wxid, sender_name FROM "{table_name}" '
+                        f'WHERE sender_name LIKE ? OR sender_wxid = ? LIMIT 50',
+                        (f"%{name_or_id}%", name_or_id),
+                    ).fetchall()
+                except Exception:
+                    continue
+                for r in rows:
+                    wxid, name = r[0], (r[1] or "")
+                    if wxid and wxid == name_or_id:
+                        return (wxid, name or name_or_id)
+                    if name and name_or_id in name:
+                        candidates.append((wxid, name))
+            platform.db_reader.close_db()
+        except Exception:
+            continue
+
+    if len(candidates) == 1:
+        return candidates[0]
+    if len(candidates) > 1:
+        for wxid, name in candidates:
+            if name == name_or_id:
+                return (wxid, name)
+        return candidates[0]  # best guess
+    return None
+
+
 # ---------------------------------------------------------------------------
 # 消息读回验证
 # ---------------------------------------------------------------------------
@@ -191,15 +266,51 @@ async def run_probe(args: argparse.Namespace) -> dict:
             "error": f"get_contacts 失败（DB 未打开？）: {exc}",
         }
 
-    try:
-        recv_wxid, recv_remark = resolve_contact(contacts, args.receiver)
-        alt_wxid, alt_remark = resolve_contact(contacts, args.alternate_with)
-    except ValueError as exc:
-        return {
-            "ready": False,
-            "error": str(exc),
-            "hint": "检查拼写；支持 wxid、昵称、备注三种匹配",
-        }
+    # 优先用 contact DB；如果 contact DB 失败（per-db 派生 key 缺失），
+    # 回退到扫 message DB 的 sender_wxid / sender_name。
+    from_msg_db: tuple[str, str] | None = None
+    if not contacts:
+        from_msg_db = (
+            resolve_contact_via_message_db(platform, args.receiver),
+            resolve_contact_via_message_db(platform, args.alternate_with),
+        )
+        if not from_msg_db[0] and not from_msg_db[1]:
+            return {
+                "ready": False,
+                "error": (
+                    f"contact DB 不可用（key 验证失败？），"
+                    f"且 message DB 也没找到 {args.receiver!r}/{args.alternate_with!r}"
+                ),
+                "hint": "配 WEIZX_WECHAT_CONTACT_DB_KEY，或用真 wxid 替代昵称",
+            }
+        # contact DB 解析失败时退化
+        if contacts:
+            try:
+                recv_wxid, recv_remark = resolve_contact(contacts, args.receiver)
+                alt_wxid, alt_remark = resolve_contact(contacts, args.alternate_with)
+            except ValueError:
+                # Fall through to message-db fallback
+                if from_msg_db[0] and from_msg_db[1]:
+                    recv_wxid, recv_remark = from_msg_db[0]
+                    alt_wxid, alt_remark = from_msg_db[1]
+                else:
+                    return {
+                        "ready": False,
+                        "error": "contact DB 解析失败，message DB fallback 也不完整",
+                    }
+        else:
+            recv_wxid, recv_remark = from_msg_db[0]
+            alt_wxid, alt_remark = from_msg_db[1]
+    else:
+        try:
+            recv_wxid, recv_remark = resolve_contact(contacts, args.receiver)
+            alt_wxid, alt_remark = resolve_contact(contacts, args.alternate_with)
+        except ValueError as exc:
+            return {
+                "ready": False,
+                "error": str(exc),
+                "hint": "检查拼写；支持 wxid、昵称、备注三种匹配",
+            }
 
     report: dict = {
         "ready": True,
