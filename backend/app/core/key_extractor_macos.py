@@ -382,12 +382,41 @@ class MacOSKeyExtractor(BaseKeyExtractor):
             logger.error(f"保存密钥失败: {exc}")
 
     def load_keys(self) -> dict[str, str]:
-        """从 JSON 文件加载已保存的密钥。"""
+        """加载 DB 密钥。
+
+        来源优先级：
+        1. `data/all_keys.json`（自动提取后保存的缓存）
+        2. 环境变量 WEIZX_WECHAT_DB_KEY / WEIZX_WECHAT_CONTACT_DB_KEY
+           （用于自动提取失败时手动配置，例如 WeChat 沙箱/TCC 阻断）
+        """
         if self.ALL_KEYS_FILE.exists():
             try:
                 with open(self.ALL_KEYS_FILE, "r", encoding="utf-8") as f:
                     self._keys = json.load(f)
-                logger.info(f"已加载 {len(self._keys)} 个密钥")
+                logger.info(f"已加载 {len(self._keys)} 个密钥 (from cache)")
+                return self._keys
             except Exception as exc:
-                logger.error(f"加载密钥失败: {exc}")
+                logger.error(f"加载密钥缓存失败: {exc}")
+
+        # Fallback 1: 手动环境变量
+        env_keys: dict[str, str] = {}
+        for env_name, db_label in (
+            ("WEIZX_WECHAT_DB_KEY", "message_0.db"),
+            ("WEIZX_WECHAT_CONTACT_DB_KEY", "contact.db"),
+        ):
+            value = os.environ.get(env_name, "").strip()
+            if value:
+                env_keys[db_label] = value
+                logger.info(f"已从 {env_name} 加载密钥 for {db_label}")
+        if env_keys:
+            self._keys = env_keys
+            # 顺便写回 cache，下一次启动就不用 env 了
+            try:
+                self._save_keys()
+                logger.info("环境变量密钥已写入 cache")
+            except Exception as exc:
+                logger.debug(f"写回 cache 失败（不影响使用）: {exc}")
+            return self._keys
+
+        logger.warning("未找到任何 DB 密钥（缓存缺失 + 环境变量未设置）")
         return self._keys
