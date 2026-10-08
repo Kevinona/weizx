@@ -74,6 +74,8 @@ class MacOSDBReader(BaseDBReader):
         self._source_mtime: float = 0.0
         self._source_size: int = 0
         self._last_refresh: float = 0.0
+        # helper 路径标记：True 表示当前 _db_path 是 helper 拷到 /tmp 的副本
+        self._source_was_helper: bool = False
 
     # --- 公共接口 ---
 
@@ -89,16 +91,35 @@ class MacOSDBReader(BaseDBReader):
         """
         logger.info(f"打开数据库: {db_path}")
 
-        if not os.path.exists(db_path):
-            logger.error(f"数据库文件不存在: {db_path}")
-            return False
-
         if len(key) != KEY_SIZE:
             logger.error(f"密钥长度错误: {len(key)} (期望 {KEY_SIZE})")
             return False
 
-        self._db_path = db_path
         self._enc_key = key
+
+        # Resolve effective path: if helper is reachable, fetch DB bytes
+        # via HTTP into /tmp. This bypasses macOS TCC for sandboxed paths.
+        effective_path = db_path
+        helper_used = False
+        try:
+            from app.utils.wechat_helper_client import (
+                helper_alive, fetch_db_to_tempfile,
+            )
+            if helper_alive():
+                tmp_p = fetch_db_to_tempfile(db_path)
+                if tmp_p is not None:
+                    effective_path = str(tmp_p)
+                    helper_used = True
+                    logger.info(f"helper → fetched to {effective_path}")
+        except Exception as exc:
+            logger.debug("helper fetch failed; using local path: %s", exc)
+
+        if not os.path.exists(effective_path):
+            logger.error(f"数据库文件不存在: {effective_path}")
+            return False
+
+        self._db_path = effective_path
+        self._source_was_helper = helper_used
 
         if not self._verify_key():
             logger.error("密钥验证失败 — 无法解密 page 1")
@@ -112,10 +133,15 @@ class MacOSDBReader(BaseDBReader):
                 check_same_thread=False,
             )
             self._sqlite_conn.row_factory = sqlite3.Row
-            self._source_mtime = os.path.getmtime(db_path)
-            self._source_size = os.path.getsize(db_path)
+            try:
+                self._source_mtime = os.path.getmtime(effective_path)
+                self._source_size = os.path.getsize(effective_path)
+            except OSError:
+                # /tmp files may have been reaped; not fatal
+                self._source_mtime = 0.0
+                self._source_size = 0
             self._last_refresh = 0.0
-            logger.info("数据库打开成功 (macOS)")
+            logger.info("数据库打开成功 (macOS, helper=%s)", helper_used)
             return True
         except Exception as exc:
             logger.error(f"打开数据库失败: {exc}")
