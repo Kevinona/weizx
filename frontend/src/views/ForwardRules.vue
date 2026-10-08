@@ -116,7 +116,7 @@ async function loadTemplates() {
   try {
     const res = await getTemplates()
     templates.value = res.data
-  } catch {}
+  } catch (err) { console.error(err) }
 }
 
 async function handleSave() {

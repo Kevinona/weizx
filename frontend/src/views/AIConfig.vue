@@ -84,6 +84,6 @@ onMounted(async () => {
         form[k] = v
       }
     }
-  } catch {}
+  } catch (err) { console.error(err) }
 })
 </script>

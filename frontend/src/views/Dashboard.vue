@@ -70,6 +70,6 @@ onMounted(async () => {
   try {
     const res = await getDashboard()
     overview.value = res.data
-  } catch {}
+  } catch (err) { console.error(err) }
 })
 </script>

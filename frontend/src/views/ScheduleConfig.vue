@@ -52,14 +52,14 @@ async function toggleJob(row: any) {
     await updateJob(row.id, { paused: !row.paused })
     row.paused = !row.paused
     ElMessage.success(row.paused ? '已暂停' : '已恢复')
-  } catch {}
+  } catch (err) { console.error(err) }
 }
 
 async function triggerJob(row: any) {
   try {
     await triggerJobApi(row.id)
     ElMessage.success(`任务 "${row.name}" 已触发`)
-  } catch {}
+  } catch (err) { console.error(err) }
 }
 
 onMounted(loadJobs)

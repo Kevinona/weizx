@@ -17,7 +17,23 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    const msg = err.response?.data?.detail || '请求失败'
+    // Pydantic 422 returns detail as a list of {loc, msg, type} objects.
+    // Stringify it before passing to ElMessage so we never pass a list
+    // to a UI component that expects a string.
+    const detail = err.response?.data?.detail
+    let msg: string
+    if (typeof detail === 'string') {
+      msg = detail
+    } else if (Array.isArray(detail)) {
+      // [Pydantic validation errors] → join their .msg
+      msg = detail
+        .map((d: any) => (typeof d === 'object' ? d.msg || JSON.stringify(d) : String(d)))
+        .join('; ')
+    } else if (detail) {
+      msg = String(detail)
+    } else {
+      msg = `请求失败 (${err.response?.status || 'network'})`
+    }
     ElMessage.error(msg)
     if (err.response?.status === 401) {
       localStorage.removeItem('token')
