@@ -162,15 +162,15 @@ class ForwardEngine:
 
         # workflow:<name>.<STATE>
         if rule_trigger.startswith("workflow:"):
-            # Exact match (or suffix match on state).
+            # Exact match always wins.
             if rule_trigger == ctx_trigger:
                 return True
-            # Partial: "workflow:flow_name" matches "workflow:flow_name.STATE"
-            if not rule_trigger.endswith(".*"):
-                # Match prefix e.g. "workflow:peiwang_order_flow" matches
-                # "workflow:peiwang_order_flow.FORWARD"
-                if ctx_trigger.startswith(rule_trigger):
-                    return True
+            # Prefix match only when the rule carries no state suffix
+            # (i.e., rule is bare "workflow:flow_name" — matches any state).
+            # If the rule specifies a state, exact match is enforced.
+            flow_part = rule_trigger[len("workflow:"):]
+            if "." not in flow_part and ctx_trigger.startswith(rule_trigger):
+                return True
             return False
 
         # keyword:kw1,kw2,kw3
@@ -205,11 +205,12 @@ class ForwardEngine:
             engine = TemplateEngine(session_factory=self._session_factory)
             return await engine.render(template_name, variables, session=session)
         except Exception:
-            logger.debug("Template engine unavailable for rename: %s", template_name)
+            logger.debug("Template engine unavailable for render: %s", template_name)
             # Fallback: treat template_name as a literal format string.
+            # Tolerate stray '{' braces (template authors may write literal JSON, etc.).
             try:
                 return template_name.format_map(_SafeDict(variables))
-            except Exception:
+            except (ValueError, KeyError, IndexError, TypeError):
                 return template_name
 
 

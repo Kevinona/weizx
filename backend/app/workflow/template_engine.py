@@ -194,19 +194,18 @@ class TemplateEngine:
         """Render plain-text template."""
         parts = []
         if tpl.get("title"):
-            parts.append(tpl["title"].format_map(_SafeDict(variables)))
+            parts.append(_safe_format(tpl["title"], variables))
         if tpl.get("content"):
-            parts.append(tpl["content"].format_map(_SafeDict(variables)))
+            parts.append(_safe_format(tpl["content"], variables))
         if tpl.get("footer"):
-            parts.append(tpl["footer"].format_map(_SafeDict(variables)))
+            parts.append(_safe_format(tpl["footer"], variables))
         return "\n".join(parts)
 
     def _render_card_content(self, tpl: dict[str, Any], variables: dict[str, Any]) -> str:
         """Render a card with decorative ASCII borders."""
-        safe = _SafeDict(variables)
-        title = (tpl.get("title") or "").format_map(safe)
-        content = (tpl.get("content") or "").format_map(safe)
-        footer = (tpl.get("footer") or "").format_map(safe)
+        title = _safe_format(tpl.get("title") or "", variables)
+        content = _safe_format(tpl.get("content") or "", variables)
+        footer = _safe_format(tpl.get("footer") or "", variables)
 
         w = _CARD_WIDTH
         hr = _CARD_CORNER_TL + _CARD_H * w + _CARD_CORNER_TR
@@ -233,10 +232,9 @@ class TemplateEngine:
 
     def _render_form_content(self, tpl: dict[str, Any], variables: dict[str, Any]) -> str:
         """Render form-type template with label-value layout."""
-        safe = _SafeDict(variables)
-        title = (tpl.get("title") or "---- FORM ----").format_map(safe)
-        content = (tpl.get("content") or "").format_map(safe)
-        footer = (tpl.get("footer") or "-------------").format_map(safe)
+        title = _safe_format(tpl.get("title") or "---- FORM ----", variables)
+        content = _safe_format(tpl.get("content") or "", variables)
+        footer = _safe_format(tpl.get("footer") or "-------------", variables)
 
         lines: list[str] = [title]
         if content:
@@ -246,10 +244,9 @@ class TemplateEngine:
 
     def _render_list_content(self, tpl: dict[str, Any], variables: dict[str, Any]) -> str:
         """Render list-type template with bullet points."""
-        safe = _SafeDict(variables)
-        title = (tpl.get("title") or "").format_map(safe)
-        content = (tpl.get("content") or "").format_map(safe)
-        footer = (tpl.get("footer") or "").format_map(safe)
+        title = _safe_format(tpl.get("title") or "", variables)
+        content = _safe_format(tpl.get("content") or "", variables)
+        footer = _safe_format(tpl.get("footer") or "", variables)
 
         lines: list[str] = []
         if title:
@@ -278,3 +275,19 @@ class _SafeDict(dict):
 
     def __missing__(self, key: str) -> str:
         return ""
+
+
+def _safe_format(text: str, variables: dict[str, Any]) -> str:
+    """``str.format_map`` wrapper that tolerates stray braces.
+
+    ``format_map`` raises ``ValueError`` on a stray ``{`` or ``}`` in the
+    template text (e.g. literal JSON, C-style braces, broken copy/paste).
+    For user-authored templates we degrade gracefully by returning the
+    raw text instead of crashing the render call.
+    """
+    if not text:
+        return text or ""
+    try:
+        return text.format_map(_SafeDict(variables))
+    except (ValueError, KeyError, IndexError, TypeError):
+        return text
