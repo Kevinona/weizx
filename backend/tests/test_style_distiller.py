@@ -35,10 +35,14 @@ _lc_core = ModuleType("langchain_core.messages")
 _lc_core.HumanMessage = lambda content: SimpleNamespace(content=content)
 _lc_core.SystemMessage = lambda content: SimpleNamespace(content=content)
 
+_lc_pkg = ModuleType("langchain_core")
+_lc_pkg.messages = _lc_core
+
 sys.modules.setdefault("app.ai.models", _models)
-sys.modules.setdefault("langchain_core.messages", _lc_core)
-sys.modules.setdefault("langchain_core", ModuleType("langchain_core"))
-sys.modules["langchain_core"].messages = _lc_core
+sys.modules["app.ai.models"] = _models
+sys.modules.setdefault("langchain_core", _lc_pkg)
+sys.modules["langchain_core"] = _lc_pkg
+sys.modules["langchain_core.messages"] = _lc_core
 
 from app.ai.style_distiller import StyleDistiller  # noqa: E402
 
@@ -71,7 +75,7 @@ def test_load_cache_falls_back_to_legacy_when_new_cache_version_stale(tmp_path, 
         encoding="utf-8",
     )
 
-    monkeypatch.setattr("app.utils.paths.get_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("app.ai.style_distiller.get_data_dir", lambda: tmp_path)
 
     d = StyleDistiller()
     # 旧 cache 存在但 version 错 → 应该回退到 legacy
@@ -105,14 +109,14 @@ def test_load_cache_uses_new_cache_when_version_matches(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    monkeypatch.setattr("app.utils.paths.get_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("app.ai.style_distiller.get_data_dir", lambda: tmp_path)
 
     d = StyleDistiller()
     assert d.meta["name"] == "fresh"
 
 
 def test_load_cache_returns_empty_when_no_files(tmp_path, monkeypatch):
-    monkeypatch.setattr("app.utils.paths.get_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("app.ai.style_distiller.get_data_dir", lambda: tmp_path)
     d = StyleDistiller()
     assert d.has_persona is False
     assert d.persona is None
@@ -205,7 +209,8 @@ def test_build_prompt_picks_correct_key():
 
 
 def test_normalize_skill_rejects_non_dict():
-    s = StyleDistiller._normalize_skill("not a dict", mode="x")
+    d = StyleDistiller.__new__(StyleDistiller)
+    s = d._normalize_skill("not a dict", mode="x")
     assert s["version"] == 2
     assert s["meta"]["name"] == "我"
 
@@ -213,14 +218,16 @@ def test_normalize_skill_rejects_non_dict():
 def test_normalize_skill_falls_back_to_legacy_when_no_persona_md():
     """payload 没有 persona_md 但有 tone → 走 legacy 路径。"""
     payload = {"tone": "casual", "persona_name": "P"}
-    s = StyleDistiller._normalize_skill(payload, mode="contextual")
+    d = StyleDistiller.__new__(StyleDistiller)
+    s = d._normalize_skill(payload, mode="contextual")
     assert s["meta"]["name"] == "P"
     assert "Layer 0" in s["persona_md"]
 
 
 def test_normalize_skill_fills_missing_fields():
     """全空 payload → 不会崩，所有字段都是合理默认。"""
-    s = StyleDistiller._normalize_skill({})
+    d = StyleDistiller.__new__(StyleDistiller)
+    s = d._normalize_skill({})
     assert s["version"] == 2
     assert s["self_memory_md"]  # 非空
     assert s["persona_md"]  # 非空
@@ -233,7 +240,7 @@ def test_normalize_skill_fills_missing_fields():
 
 
 def test_save_edits_merges_meta_and_persists(tmp_path, monkeypatch):
-    monkeypatch.setattr("app.utils.paths.get_data_dir", lambda: tmp_path)
+    monkeypatch.setattr("app.ai.style_distiller.get_data_dir", lambda: tmp_path)
     d = StyleDistiller()
     # 设置一个空 skill 起点
     d._cached_skill = d._empty_skill()

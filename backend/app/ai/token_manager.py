@@ -97,27 +97,40 @@ class TokenManager:
                 return msg.decode("utf-8", errors="replace")
             except Exception:
                 return msg.decode("latin-1", errors="replace")
-        # langchain BaseMessage and friends
-        content = getattr(msg, "content", None)
-        if content is None:
+        # langchain BaseMessage and friends — has explicit .content attribute.
+        # Distinguish "content is None" (semantic empty) from "no .content attr"
+        # (raw object that should fall back to str()).
+        if hasattr(msg, "content"):
+            content = msg.content
+            if content is None:
+                return ""
+            if isinstance(content, bytes):
+                try:
+                    return content.decode("utf-8", errors="replace")
+                except Exception:
+                    return content.decode("latin-1", errors="replace")
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                # multimodal: extract text segments only
+                parts: list[str] = []
+                for part in content:
+                    if isinstance(part, str):
+                        parts.append(part)
+                    elif isinstance(part, dict):
+                        if part.get("type") == "text" and isinstance(part.get("text"), str):
+                            parts.append(part["text"])
+                        # image / audio / file segments are omitted; they don't
+                        # contribute to text-token counts in this approximation
+                    else:
+                        parts.append(str(part))
+                return "\n".join(parts)
+            return str(content)
+        # No .content — fall back to str(msg) so plain int / float / namespace
+        # values that callers might mix into a message list still get counted.
+        if msg is None:
             return ""
-        if isinstance(content, str):
-            return content
-        if isinstance(content, list):
-            # multimodal: extract text segments only
-            parts: list[str] = []
-            for part in content:
-                if isinstance(part, str):
-                    parts.append(part)
-                elif isinstance(part, dict):
-                    if part.get("type") == "text" and isinstance(part.get("text"), str):
-                        parts.append(part["text"])
-                    # image / audio / file segments are omitted; they don't
-                    # contribute to text-token counts in this approximation
-                else:
-                    parts.append(str(part))
-            return "\n".join(parts)
-        return str(content)
+        return str(msg)
 
     # ------------------------------------------------------------------
     # 上下文裁剪
@@ -170,3 +183,8 @@ class TokenManager:
                 return size
         logger.warning(f"Unknown model '{model_name}', defaulting to 8192 context")
         return 8192
+
+
+# Module-level alias for tests and external callers that don't want
+# to instantiate TokenManager just to extract text from a message.
+_extract_text = TokenManager._extract_text

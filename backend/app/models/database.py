@@ -20,8 +20,9 @@ class Message(Base):
     room_id = Column(String(64), index=True, default="")
     room_name = Column(String(128))
     is_group = Column(Boolean, default=False)
-    create_time = Column(DateTime, default=datetime.now)
-    created_at = Column(DateTime, default=datetime.now)
+    # create_time is the canonical timestamp; queried by date-range in
+    # message_service / statistics_service hot paths. Indexed for speed.
+    create_time = Column(DateTime, default=datetime.now, index=True)
 
 
 class AutoReplyRule(Base):
@@ -76,6 +77,7 @@ class ForwardRule(Base):
     template = Column(String(256))
     enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
 class ChatStatistic(Base):

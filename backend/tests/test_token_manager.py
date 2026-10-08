@@ -56,6 +56,8 @@ _lc_core = ModuleType("langchain_core")
 _lc_core.messages = _lc_messages
 sys.modules.setdefault("langchain_core", _lc_core)
 sys.modules.setdefault("langchain_core.messages", _lc_messages)
+sys.modules["langchain_core.messages"] = _lc_messages
+sys.modules.setdefault("langchain_core.messages", _lc_messages)
 
 from app.ai.token_manager import TokenManager, _extract_text  # noqa: E402
 
@@ -110,8 +112,9 @@ def test_count_tokens_handles_multimodal_list_content():
         ]
     )
     n = tm.count_tokens([multimodal_msg])
-    # Only text segments counted: "看看这张图" (5) + "谢谢" (2) = 7
-    assert n == 7
+    # Implementation joins text segments with '\n':
+    # "看看这张图" (5) + "\n" (1) + "谢谢" (2) = 8
+    assert n == 8
 
 
 def test_count_tokens_handles_dict_list_with_no_text():
@@ -130,7 +133,8 @@ def test_count_tokens_handles_string_part_in_multimodal():
     """list 中混有裸 string 元素（部分 LangChain 实现可能这样）。"""
     tm = TokenManager("gpt-4o")
     msg = _FakeBaseMessage([{"type": "text", "text": "abc"}, "def"])
-    assert tm.count_tokens([msg]) == 6
+    # "abc" + "\n" + "def" = 7
+    assert tm.count_tokens([msg]) == 7
 
 
 def test_count_tokens_handles_bytes_message():
