@@ -26,7 +26,7 @@ from typing import Optional
 import psutil
 
 from app.core.base import BaseKeyExtractor
-from app.utils.paths import get_data_dir
+from app.utils.paths import get_base_dir, get_data_dir
 
 logger = logging.getLogger(__name__)
 
@@ -399,12 +399,17 @@ class MacOSKeyExtractor(BaseKeyExtractor):
                 logger.error(f"加载密钥缓存失败: {exc}")
 
         # Fallback 1: 手动环境变量
+        # 来源 1a: 进程环境变量 (export WEIZX_WECHAT_DB_KEY=...)
+        # 来源 1b: 项目根 .env 文件（兼容 dotenv 格式）
         env_keys: dict[str, str] = {}
         for env_name, db_label in (
             ("WEIZX_WECHAT_DB_KEY", "message_0.db"),
             ("WEIZX_WECHAT_CONTACT_DB_KEY", "contact.db"),
         ):
             value = os.environ.get(env_name, "").strip()
+            if not value:
+                # 尝试从项目根 .env 读（dotenv 格式，不修改 os.environ）
+                value = self._read_env_file_key(env_name)
             if value:
                 env_keys[db_label] = value
                 logger.info(f"已从 {env_name} 加载密钥 for {db_label}")
@@ -420,3 +425,16 @@ class MacOSKeyExtractor(BaseKeyExtractor):
 
         logger.warning("未找到任何 DB 密钥（缓存缺失 + 环境变量未设置）")
         return self._keys
+
+    def _read_env_file_key(self, key: str) -> str:
+        """从项目根 .env 文件读单个 key 的值。无需污染 os.environ。"""
+        try:
+            from dotenv import dotenv_values
+
+            env_path = get_base_dir() / ".env"
+            if not env_path.exists():
+                return ""
+            values = dotenv_values(env_path) or {}
+            return (values.get(key) or "").strip()
+        except Exception:
+            return ""

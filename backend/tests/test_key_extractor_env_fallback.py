@@ -27,8 +27,11 @@ from app.core.key_extractor_macos import MacOSKeyExtractor  # noqa: E402
 
 @pytest.fixture
 def empty_data_dir(tmp_path, monkeypatch):
-    """每个测试用独立 tmp_path 作为 data dir，避免污染全局 cache。"""
+    """每个测试用独立 tmp_path 作为 data dir + project root，避免污染全局 cache
+    和读到项目真实的 .env 文件。"""
     monkeypatch.setattr(key_extractor_macos, "get_data_dir", lambda: tmp_path)
+    # 把 get_base_dir 也指向同一个 tmp_path（.env 不会在这里存在）
+    monkeypatch.setattr(key_extractor_macos, "get_base_dir", lambda: tmp_path)
     return tmp_path
 
 
@@ -37,6 +40,66 @@ def clean_env(monkeypatch):
     """每个测试前清掉相关的 env var。"""
     for k in ("WEIZX_WECHAT_DB_KEY", "WEIZX_WECHAT_CONTACT_DB_KEY"):
         monkeypatch.delenv(k, raising=False)
+
+
+def test_load_keys_falls_back_to_dotenv_file(empty_data_dir, tmp_path):
+    """项目根 .env 文件没自动加载到 os.environ 时，load_keys 应主动读。"""
+    # 写一个 .env 到 tmp_path
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "WEIZX_WECHAT_DB_KEY=" + "a" * 64 + "\n"
+        "WEIZX_WECHAT_CONTACT_DB_KEY=" + "b" * 64 + "\n"
+        "# 一行注释\n"
+        "OTHER_VAR=should_not_appear\n",
+        encoding="utf-8",
+    )
+
+    ext = MacOSKeyExtractor.__new__(MacOSKeyExtractor)
+    ext.ALL_KEYS_FILE = empty_data_dir / "all_keys.json"
+    ext._keys = {}
+
+    result = ext.load_keys()
+    assert "message_0.db" in result
+    assert "contact.db" in result
+    assert result["message_0.db"] == "a" * 64
+    assert result["contact.db"] == "b" * 64
+
+
+def test_env_file_takes_precedence_over_no_cache(empty_data_dir, tmp_path):
+    """cache 缺失时，.env 文件里的 key 也能被加载。"""
+    empty = tmp_path / "data"
+    empty.mkdir()
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "WEIZX_WECHAT_DB_KEY=" + "c" * 64 + "\n",
+        encoding="utf-8",
+    )
+
+    ext = MacOSKeyExtractor.__new__(MacOSKeyExtractor)
+    ext.ALL_KEYS_FILE = empty / "all_keys.json"
+    ext._keys = {}
+
+    result = ext.load_keys()
+    assert result["message_0.db"] == "c" * 64
+
+
+def test_process_env_wins_over_dotenv_file(empty_data_dir, tmp_path, monkeypatch):
+    """shell 设的 env var 优先于 .env 文件（同 key 时）。"""
+    monkeypatch.setenv("WEIZX_WECHAT_DB_KEY", "shell_" + "s" * 58)
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "WEIZX_WECHAT_DB_KEY=" + "file_" + "f" * 58 + "\n",
+        encoding="utf-8",
+    )
+
+    ext = MacOSKeyExtractor.__new__(MacOSKeyExtractor)
+    ext.ALL_KEYS_FILE = empty_data_dir / "all_keys.json"
+    ext._keys = {}
+
+    result = ext.load_keys()
+    # shell 优先
+    assert result["message_0.db"].startswith("shell_")
+    assert not result["message_0.db"].startswith("file_")
 
 
 # ---------------------------------------------------------------------------
