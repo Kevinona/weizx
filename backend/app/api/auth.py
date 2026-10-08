@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
+from jose import jwt
+from jose.exceptions import JOSEError
 from passlib.context import CryptContext
 
 from app.config import get_config
@@ -24,7 +25,11 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
     try:
         payload = jwt.decode(credentials.credentials, config.admin.get("jwt_secret", ""), algorithms=["HS256"])
         return payload
-    except JWTError:
+    except JOSEError:
+        # JOSEError is the common base of JWTError, JWSError, ExpiredSignatureError,
+        # JWTClaimsError, etc. python-jose's JWSError is NOT a JWTError subclass
+        # (both inherit from JOSEError directly), so catching only JWTError would
+        # leak signature / decode failures as 500 instead of 401.
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 

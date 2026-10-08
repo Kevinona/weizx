@@ -44,5 +44,10 @@ async def list_messages(
 @router.post("/send")
 async def send_message(req: SendMessageRequest):
     platform = Platform.get()
-    success = await platform.sender.send_text(req.msg, req.receiver, req.aters)
+    # NOTE: MacOSSender.send_text signature is
+    #       send_text(msg, receiver, force_skip=False, is_group=False, target_id="")
+    # Passing req.aters as the 3rd positional would map it to `force_skip` (bool),
+    # which silently activates "skip search" mode whenever the aters string is
+    # non-empty. Use the dedicated keyword to keep semantics correct.
+    success = await platform.sender.send_text(req.msg, req.receiver, target_id=req.aters)
     return {"success": success, "msg": req.msg, "receiver": req.receiver}
