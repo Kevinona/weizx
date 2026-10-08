@@ -75,17 +75,49 @@ class TokenManager:
         if isinstance(content, list):
             total = 0
             for msg in content:
-                if hasattr(msg, "content"):
-                    text = msg.content or ""
-                elif isinstance(msg, str):
-                    text = msg
-                else:
-                    text = str(msg)
-                total += len(self._encoding.encode(str(text)))
+                text = self._extract_text(msg)
+                total += len(self._encoding.encode(text))
             return total
 
-        text = str(content) if content else ""
+        text = self._extract_text(content)
         return len(self._encoding.encode(text))
+
+    @staticmethod
+    def _extract_text(msg: Any) -> str:
+        """从 message 对象中提取可编码的纯文本。
+
+        处理 multimodal 消息：``msg.content`` 可能是 ``[{"type": "text", ...}, ...]``
+        列表（langchain 0.2+ 的 HumanMessage/AIMessage 多模态形态）。直接
+        ``str(content)`` 会把整个 dict 列表塞进编码器，结果既不准确也不稳定。
+        """
+        if isinstance(msg, str):
+            return msg
+        if isinstance(msg, bytes):
+            try:
+                return msg.decode("utf-8", errors="replace")
+            except Exception:
+                return msg.decode("latin-1", errors="replace")
+        # langchain BaseMessage and friends
+        content = getattr(msg, "content", None)
+        if content is None:
+            return ""
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            # multimodal: extract text segments only
+            parts: list[str] = []
+            for part in content:
+                if isinstance(part, str):
+                    parts.append(part)
+                elif isinstance(part, dict):
+                    if part.get("type") == "text" and isinstance(part.get("text"), str):
+                        parts.append(part["text"])
+                    # image / audio / file segments are omitted; they don't
+                    # contribute to text-token counts in this approximation
+                else:
+                    parts.append(str(part))
+            return "\n".join(parts)
+        return str(content)
 
     # ------------------------------------------------------------------
     # 上下文裁剪

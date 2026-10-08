@@ -86,23 +86,24 @@ def sanitize_user_input(text: str) -> tuple[str, list[str]]:
     warnings: list[str] = []
     sanitized = text
 
-    # 1. 长度限制
-    if len(sanitized) > 2000:
-        sanitized = sanitized[:2000]
-
-    # 2. 移除危险的特殊标记序列
+    # 1. 移除危险的特殊标记序列（先做，避免被截断到 2000 字符之后）
     for marker in ["<|im_start|>", "<|im_end|>", "[SYSTEM]", "[INST]", "[SYS]"]:
         if marker in sanitized:
             sanitized = sanitized.replace(marker, "")
             warnings.append(f"removed_marker:{marker}")
 
-    # 3. 检测注入模式
+    # 2. 检测注入模式（在截断前 — 否则攻击者把 payload 放 2000 字符后能绕过）
     for pattern in _INJECTION_PATTERNS:
         if re.search(pattern, sanitized, re.IGNORECASE):
             tag = f"injection_pattern:{pattern[:50]}"
             warnings.append(tag)
             logger.warning(f"检测到提示词注入尝试: {tag}, input[:80]={text[:80]}")
             break  # 记录一次即可
+
+    # 3. 长度限制（最后做；超长会发出截断警告）
+    if len(sanitized) > 2000:
+        sanitized = sanitized[:2000]
+        warnings.append("truncated_at_2000_chars")
 
     return sanitized, warnings
 

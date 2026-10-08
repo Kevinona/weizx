@@ -261,8 +261,13 @@ class StyleDistiller:
 
     def _load_cache(self) -> None:
         if self._cache_path.exists():
-            self._cached_skill = self._read_new_cache()
-            return
+            skill = self._read_new_cache()
+            if skill is not None:
+                self._cached_skill = skill
+                return
+            # Stale new-format cache (e.g. version bump) — fall through to
+            # legacy so users don't lose persona data on upgrade. The new
+            # cache file will be overwritten on next analyze().
         self._cached_skill = self._read_legacy_cache()
 
     def _read_new_cache(self) -> Optional[dict[str, Any]]:
