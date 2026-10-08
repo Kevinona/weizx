@@ -110,8 +110,35 @@ cp .env.example .env
 ```
 系统设置 → 隐私与安全性
   ├─ 辅助功能：添加 Weizx（PyQt 启动器或终端）
-  └─ 屏幕录制：添加 Weizx
+  ├─ 屏幕录制：添加 Weizx
+  └─ 完全磁盘访问：添加 WeChatHelper（见下方步骤 4a）
 ```
+
+#### 4a. 启动 WeChatHelper（macOS 沙箱桥接）
+
+Python 不能直接读 `~/Library/Containers/.../xwechat_files/`，需要 helper
+app 拿到 Full Disk Access 后通过 localhost HTTP 转发：
+
+```bash
+cd tools/macos-helper
+./build-app.sh                       # 编译 + ad-hoc 签名
+open WeChatHelper.app                 # 触发 macOS 弹窗
+# 系统设置 → 隐私与安全性 → 完全磁盘访问 → 启用 WeChatHelper
+pkill WeChatHelper
+open WeChatHelper.app                 # 重启让 FDA 生效
+```
+
+helper 起来后监听 `127.0.0.1:12345`，提供 `/api/db/list` 和 `/api/db/raw`。
+Python 端 `db_reader_macos` 自动检测 helper 可达性，30s backoff 缓存；
+helper 不在时降级到 `~/xwechat_files/`（手动 cp 出的快照）。
+
+不开 .app 的 fallback 模式：
+
+```bash
+cp -R ~/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/ ~/xwechat_files/
+```
+
+> 详见 `tools/macos-helper/README.md`。
 
 ### 5. 启动
 
