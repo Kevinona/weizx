@@ -849,54 +849,80 @@ class MacOSDBReader(BaseDBReader):
     def find_database_files(cls, wxid: str = "") -> list[str]:
         """查找 macOS 上指定 wxid 的所有数据库文件。
 
-        支持新旧两种微信数据目录结构:
-        - 新: xwechat_files/<wxid>/db_storage/<category>/<db>.db
-        - 旧: Application Support/<version>/<wxid>/Message/<db>.db
+        优先级：
+        1. Swift WeChatHelper HTTP API（如果可达 + .app bundle 拿到了 FDA）
+        2. 本地扫描（xwechat_files fallback / 直接读 sandbox）
+
+        跳过 PermissionError（TCC 阻断）— 让 fallback 有机会被试。
         """
+        # 1. Try helper first if reachable
+        try:
+            from app.utils.wechat_helper_client import (
+                helper_alive, list_databases,
+            )
+            if helper_alive():
+                dbs = list_databases()
+                if dbs is not None:
+                    return [
+                        d["path"] for d in dbs
+                        if not wxid or d["wxid"] == wxid
+                    ]
+        except Exception as exc:
+            logger.debug("helper list_databases failed; using local: %s", exc)
+
+        # 2. Local scan
         db_files: list[str] = []
 
         for base_dir in cls.MACOS_DATA_DIRS:
-            if not os.path.exists(base_dir):
+            try:
+                if not os.path.exists(base_dir):
+                    continue
+            except (PermissionError, OSError) as exc:
+                logger.debug("skipping %s: %s", base_dir, exc)
                 continue
 
-            if "xwechat_files" in base_dir:
-                for wxid_entry in os.scandir(base_dir):
-                    if not wxid_entry.is_dir():
-                        continue
-                    if wxid and wxid_entry.name != wxid:
-                        continue
-
-                    storage = os.path.join(wxid_entry.path, "db_storage")
-                    if not os.path.isdir(storage):
-                        continue
-
-                    for root, _dirs, files in os.walk(storage):
-                        for fname in files:
-                            if fname.endswith(".db"):
-                                db_files.append(os.path.join(root, fname))
-            else:
-                for entry in os.scandir(base_dir):
-                    if not entry.is_dir():
-                        continue
-                    if "." not in entry.name:
-                        continue
-
-                    for wxid_entry in os.scandir(entry.path):
+            try:
+                if "xwechat_files" in base_dir:
+                    for wxid_entry in os.scandir(base_dir):
                         if not wxid_entry.is_dir():
                             continue
                         if wxid and wxid_entry.name != wxid:
                             continue
 
-                        msg_dir = os.path.join(wxid_entry.path, "Message")
-                        if os.path.exists(msg_dir):
-                            for db_entry in os.scandir(msg_dir):
-                                if db_entry.name.endswith(".db"):
-                                    db_files.append(db_entry.path)
+                        storage = os.path.join(wxid_entry.path, "db_storage")
+                        if not os.path.isdir(storage):
+                            continue
 
-                        msg_dir_v2 = os.path.join(wxid_entry.path, "Msg")
-                        if os.path.exists(msg_dir_v2):
-                            for db_entry in os.scandir(msg_dir_v2):
-                                if db_entry.name.endswith(".db"):
-                                    db_files.append(db_entry.path)
+                        for root, _dirs, files in os.walk(storage):
+                            for fname in files:
+                                if fname.endswith(".db"):
+                                    db_files.append(os.path.join(root, fname))
+                else:
+                    for entry in os.scandir(base_dir):
+                        if not entry.is_dir():
+                            continue
+                        if "." not in entry.name:
+                            continue
+
+                        for wxid_entry in os.scandir(entry.path):
+                            if not wxid_entry.is_dir():
+                                continue
+                            if wxid and wxid_entry.name != wxid:
+                                continue
+
+                            msg_dir = os.path.join(wxid_entry.path, "Message")
+                            if os.path.exists(msg_dir):
+                                for db_entry in os.scandir(msg_dir):
+                                    if db_entry.name.endswith(".db"):
+                                        db_files.append(db_entry.path)
+
+                            msg_dir_v2 = os.path.join(wxid_entry.path, "Msg")
+                            if os.path.exists(msg_dir_v2):
+                                for db_entry in os.scandir(msg_dir_v2):
+                                    if db_entry.name.endswith(".db"):
+                                        db_files.append(db_entry.path)
+            except (PermissionError, OSError) as exc:
+                logger.debug("scan error in %s: %s", base_dir, exc)
+                continue
 
         return db_files
